@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Валентинка 💖</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #ffc0cb;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .gif-container img {
+            width: 300px;
+            height: auto;
+        }
+        .question {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .buttons {
+            margin-top: 20px;
+            position: relative;
+        }
+        .heart-button {
+            font-size: 18px;
+            padding: 15px 30px;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: 0.3s;
+            color: white;
+            background: red;
+            font-weight: bold;
+            position: absolute;
+        }
+        .heart-button:hover {
+            background: darkred;
+        }
+        #noBtn {
+            position: absolute;
+        }
+        .hidden {
+            display: none;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Первый экран -->
+    <div id="startScreen" class="container">
+        <div class="gif-container">
+            <img src="img/start.gif" alt="Гифка с вопросом">
+        </div>
+        <p class="question">Будешь ли ты моей валентинкой? 💖</p>
+        <div class="buttons">
+            <button class="heart-button" id="yesBtn" style="left: 40%; top: 50px;">Да</button>
+            <button class="heart-button" id="noBtn" style="left: 55%; top: 50px;">Нет</button>
+        </div>
+    </div>
+
+    <!-- Экран после нажатия "Да" -->
+    <div id="yesScreen" class="container hidden">
+        <div class="gif-container">
+            <img src="img/happy.gif" alt="Счастливая гифка">
+        </div>
+        <h1>YAPIIIII!!!! ❤️</h1>
+        <canvas id="confettiCanvas"></canvas>
+    </div>
+
+    <script>
+        const yesBtn = document.getElementById("yesBtn");
+        const noBtn = document.getElementById("noBtn");
+        const startScreen = document.getElementById("startScreen");
+        const yesScreen = document.getElementById("yesScreen");
+
+        let noClickCount = 0;
+        let noRunning = true;
+
+        // Кнопка "Нет" убегает, но потом останавливается
+        noBtn.addEventListener("mouseover", () => {
+            if (noClickCount < 5 && noRunning) {
+                let x = Math.random() * (window.innerWidth - 100);
+                let y = Math.random() * (window.innerHeight - 50);
+                noBtn.style.left = `${x}px`;
+                noBtn.style.top = `${y}px`;
+                noClickCount++;
+            } else {
+                noRunning = false; // Остановили убегание
+            }
+        });
+
+        // Если нажать на "Нет" - кнопка "Да" увеличивается и закрывает "Нет"
+        noBtn.addEventListener("click", () => {
+            let growInterval = setInterval(() => {
+                let currentSize = parseFloat(window.getComputedStyle(yesBtn).transform.split(",")[3]) || 1;
+                yesBtn.style.transform = `scale(${currentSize + 0.1})`;
+
+                if (currentSize >= 2.5) {
+                    clearInterval(growInterval);
+                    noBtn.style.display = "none";
+                }
+            }, 100);
+        });
+
+        yesBtn.addEventListener("click", () => {
+            startScreen.classList.add("hidden");
+            yesScreen.classList.remove("hidden");
+            startConfetti();
+        });
+
+        function startConfetti() {
+            const canvas = document.getElementById("confettiCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            let confetti = [];
+
+            function createConfetti() {
+                for (let i = 0; i < 100; i++) {
+                    confetti.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * -canvas.height, // Начало за экраном
+                        size: Math.random() * 10 + 5,
+                        speed: Math.random() * 3 + 2,
+                        sway: Math.random() * 2 - 1, // Колебания влево-вправо
+                        color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                    });
+                }
+            }
+
+            function drawConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                confetti.forEach((c) => {
+                    ctx.fillStyle = c.color;
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            function updateConfetti() {
+                confetti.forEach((c) => {
+                    c.y += c.speed;
+                    c.x += Math.sin(c.y * 0.02) * c.sway; // Эффект покачивания
+                    if (c.y > canvas.height) {
+                        c.y = -10;
+                        c.x = Math.random() * canvas.width;
+                    }
+                });
+            }
+
+            function animateConfetti() {
+                drawConfetti();
+                updateConfetti();
+                requestAnimationFrame(animateConfetti);
+            }
+
+            createConfetti();
+            animateConfetti();
+        }
+    </script>
+
+</body>
+</html>
